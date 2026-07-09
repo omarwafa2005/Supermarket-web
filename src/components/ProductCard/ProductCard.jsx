@@ -1,12 +1,29 @@
 import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
+import { WishlistContext } from "../../context/WishlistContext";
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useContext(CartContext);
 
+  const { wishlist, toggleWishlist } =
+    useContext(WishlistContext);
+
+  const isFavorite = wishlist.find(
+    (item) => item.id === product.id
+  );
+
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
+    <div className="relative bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
+      {/* Wishlist Button */}
+      <button
+        onClick={() => toggleWishlist(product)}
+        className="absolute top-3 right-3 text-3xl z-10"
+      >
+        {isFavorite ? "❤️" : "🤍"}
+      </button>
+
+      {/* Product Image */}
       <Link to={`/products/${product.id}`}>
         <img
           src={product.image}
@@ -15,9 +32,10 @@ const ProductCard = ({ product }) => {
         />
       </Link>
 
+      {/* Product Info */}
       <div className="p-5">
         <Link to={`/products/${product.id}`}>
-          <h3 className="text-xl font-semibold hover:text-green-600">
+          <h3 className="text-xl font-semibold hover:text-green-600 transition">
             {product.name}
           </h3>
         </Link>

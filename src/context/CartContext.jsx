@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export const CartContext = createContext();
 
@@ -9,6 +10,8 @@ const CartProvider = ({ children }) => {
   });
 
   const addToCart = (product) => {
+    toast.success(`${product.name} added to cart`);
+
     setCartItems((prev) => {
       const exist = prev.find(
         (item) => item.id === product.id
