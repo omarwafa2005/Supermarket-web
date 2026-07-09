@@ -1,37 +1,54 @@
-import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useContext } from "react";
 import products from "../../data/products";
 import ProductCard from "../../components/ProductCard/ProductCard";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const Products = () => {
-  const [searchParams] = useSearchParams();
-
-  const initialCategory =
-    searchParams.get("category") || "All";
-
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] =
-    useState(initialCategory);
+  const [sortBy, setSortBy] = useState("");
 
-  const categories = [
-    "All",
-    ...new Set(products.map((p) => p.category)),
-  ];
+  const { darkMode } =
+    useContext(ThemeContext);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
+  let filteredProducts =
+    products.filter((product) =>
+      product.name
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    );
 
-    const matchesCategory =
-      selectedCategory === "All" ||
-      product.category === selectedCategory;
+  if (sortBy === "low") {
+    filteredProducts.sort(
+      (a, b) => a.price - b.price
+    );
+  }
 
-    return matchesSearch && matchesCategory;
-  });
+  if (sortBy === "high") {
+    filteredProducts.sort(
+      (a, b) => b.price - a.price
+    );
+  }
+
+  if (sortBy === "az") {
+    filteredProducts.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }
+
+  if (sortBy === "za") {
+    filteredProducts.sort((a, b) =>
+      b.name.localeCompare(a.name)
+    );
+  }
 
   return (
-    <section className="max-w-7xl mx-auto py-16 px-6">
+    <section
+      className={`max-w-7xl mx-auto py-16 px-6 transition-colors duration-300 ${
+        darkMode
+          ? "text-white"
+          : "text-black"
+      }`}
+    >
       <h1 className="text-5xl font-bold text-center mb-12">
         All Products
       </h1>
@@ -44,41 +61,56 @@ const Products = () => {
           onChange={(e) =>
             setSearch(e.target.value)
           }
-          className="p-3 border rounded-lg w-full md:w-80"
+          className={`w-full md:w-96 p-3 rounded-lg border ${
+            darkMode
+              ? "bg-gray-800 border-gray-700 text-white"
+              : "bg-white border-gray-300 text-black"
+          }`}
         />
 
         <select
-          value={selectedCategory}
+          value={sortBy}
           onChange={(e) =>
-            setSelectedCategory(e.target.value)
+            setSortBy(e.target.value)
           }
-          className="p-3 border rounded-lg"
+          className={`p-3 rounded-lg border ${
+            darkMode
+              ? "bg-gray-800 border-gray-700 text-white"
+              : "bg-white border-gray-300 text-black"
+          }`}
         >
-          {categories.map((category) => (
-            <option
-              key={category}
-              value={category}
-            >
-              {category}
-            </option>
-          ))}
+          <option value="">
+            Sort By
+          </option>
+
+          <option value="low">
+            Price: Low → High
+          </option>
+
+          <option value="high">
+            Price: High → Low
+          </option>
+
+          <option value="az">
+            Name: A → Z
+          </option>
+
+          <option value="za">
+            Name: Z → A
+          </option>
         </select>
       </div>
 
-      {filteredProducts.length === 0 ? (
-        <h2 className="text-center text-2xl">
-          No products found.
-        </h2>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {filteredProducts.map((product) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {filteredProducts.map(
+          (product) => (
             <ProductCard
               key={product.id}
               product={product}
             />
-          ))}
-        </div>
-      )}
+          )
+        )}
+      </div>
     </section>
   );
 };

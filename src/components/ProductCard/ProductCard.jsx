@@ -2,29 +2,46 @@ import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { WishlistContext } from "../../context/WishlistContext";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useContext(CartContext);
+  const { addToCart } =
+    useContext(CartContext);
 
-  const { wishlist, toggleWishlist } =
-    useContext(WishlistContext);
+  const {
+    wishlist,
+    toggleWishlist,
+  } = useContext(WishlistContext);
 
-  const isFavorite = wishlist.find(
-    (item) => item.id === product.id
-  );
+  const { darkMode } =
+    useContext(ThemeContext);
+
+  const isFavorite =
+    wishlist.find(
+      (item) =>
+        item.id === product.id
+    );
 
   return (
-    <div className="relative bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-      {/* Wishlist Button */}
+    <div
+      className={`relative rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ${
+        darkMode
+          ? "bg-gray-800 text-white"
+          : "bg-white text-black"
+      }`}
+    >
       <button
-        onClick={() => toggleWishlist(product)}
-        className="absolute top-3 right-3 text-3xl z-10"
+        onClick={() =>
+          toggleWishlist(product)
+        }
+        className="absolute top-4 right-4 text-2xl"
       >
         {isFavorite ? "❤️" : "🤍"}
       </button>
 
-      {/* Product Image */}
-      <Link to={`/products/${product.id}`}>
+      <Link
+        to={`/products/${product.id}`}
+      >
         <img
           src={product.image}
           alt={product.name}
@@ -32,24 +49,35 @@ const ProductCard = ({ product }) => {
         />
       </Link>
 
-      {/* Product Info */}
       <div className="p-5">
-        <Link to={`/products/${product.id}`}>
-          <h3 className="text-xl font-semibold hover:text-green-600 transition">
-            {product.name}
-          </h3>
-        </Link>
+        <h3 className="text-xl font-semibold">
+          {product.name}
+        </h3>
 
-        <p className="text-gray-500">
+        <p
+          className={
+            darkMode
+              ? "text-gray-300"
+              : "text-gray-500"
+          }
+        >
           {product.category}
         </p>
 
-        <p className="text-green-600 font-bold text-xl mt-2">
-          ${product.price}
-        </p>
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-green-600 font-bold text-xl">
+            ${product.price}
+          </p>
+
+          <span className="font-semibold">
+            ⭐ {product.rating}
+          </span>
+        </div>
 
         <button
-          onClick={() => addToCart(product)}
+          onClick={() =>
+            addToCart(product)
+          }
           className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
         >
           Add to Cart

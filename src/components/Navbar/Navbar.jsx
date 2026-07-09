@@ -2,14 +2,24 @@ import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { WishlistContext } from "../../context/WishlistContext";
+import { AuthContext } from "../../context/AuthContext";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const Navbar = () => {
   const { cartItems } = useContext(CartContext);
-  const { wishlist } =
-    useContext(WishlistContext);
+  const { wishlist } = useContext(WishlistContext);
+  const { user, logout } = useContext(AuthContext);
+  const { darkMode, setDarkMode } =
+    useContext(ThemeContext);
 
   return (
-    <nav className="bg-white shadow px-8 py-4 flex justify-between items-center">
+    <nav
+      className={`shadow px-8 py-4 flex justify-between items-center transition-colors duration-300 ${
+        darkMode
+          ? "bg-gray-800 text-white"
+          : "bg-white text-black"
+      }`}
+    >
       <Link
         to="/"
         className="text-3xl font-bold text-green-600"
@@ -32,7 +42,6 @@ const Navbar = () => {
           Products
         </Link>
 
-        {/* Wishlist */}
         <div className="relative">
           <Link
             to="/wishlist"
@@ -48,7 +57,6 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Cart */}
         <div className="relative">
           <Link
             to="/cart"
@@ -63,6 +71,37 @@ const Navbar = () => {
             </span>
           )}
         </div>
+
+        <button
+          onClick={() =>
+            setDarkMode(!darkMode)
+          }
+          className="text-2xl"
+        >
+          {darkMode ? "☀️" : "🌙"}
+        </button>
+
+        {user ? (
+          <div className="flex items-center gap-3">
+            <span className="font-medium">
+              Hi, {user.name}
+            </span>
+
+            <button
+              onClick={logout}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <Link
+            to="/login"
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            Login
+          </Link>
+        )}
       </div>
     </nav>
   );

@@ -9,12 +9,14 @@ import "./style.css";
 
 import CartProvider from "./context/CartContext";
 import WishlistProvider from "./context/WishlistContext";
-
+import AuthProvider from "./context/AuthContext";
+import ThemeProvider from "./context/ThemeContext";
 ReactDOM.createRoot(
   document.getElementById("root")
 ).render(
-  <React.StrictMode>
-    <BrowserRouter>
+  <BrowserRouter>
+  <ThemeProvider>
+    <AuthProvider>
       <CartProvider>
         <WishlistProvider>
           <App />
@@ -24,6 +26,7 @@ ReactDOM.createRoot(
           />
         </WishlistProvider>
       </CartProvider>
-    </BrowserRouter>
-  </React.StrictMode>
+    </AuthProvider>
+  </ThemeProvider>
+</BrowserRouter>
 );
