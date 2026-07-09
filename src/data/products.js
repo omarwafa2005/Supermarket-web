@@ -1,5 +1,3 @@
-import ProductCard from "../ProductCard/ProductCard";
-
 const products = [
   {
     id: 1,
@@ -11,7 +9,7 @@ const products = [
   },
   {
     id: 2,
-    name: "Fresh Milk",
+    name: "Milk",
     price: 2.5,
     image:
       "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400",
@@ -35,23 +33,4 @@ const products = [
   },
 ];
 
-const FeaturedProducts = () => {
-  return (
-    <section className="max-w-7xl mx-auto py-16 px-6">
-      <h2 className="text-4xl font-bold text-center mb-10">
-        Featured Products
-      </h2>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-          />
-        ))}
-      </div>
-    </section>
-  );
-};
-
-export default FeaturedProducts;
+export default products;
