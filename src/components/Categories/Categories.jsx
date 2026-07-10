@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const Categories = () => {
+  const { darkMode } =
+    useContext(ThemeContext);
+
   const categories = [
     {
       name: "Fruits",
@@ -21,7 +26,13 @@ const Categories = () => {
   ];
 
   return (
-    <section className="max-w-7xl mx-auto py-16 px-6">
+    <section
+      className={`max-w-7xl mx-auto py-16 px-6 transition-colors duration-300 ${
+        darkMode
+          ? "text-white"
+          : "text-black"
+      }`}
+    >
       <h2 className="text-4xl font-bold text-center mb-10">
         Shop by Category
       </h2>
@@ -31,7 +42,11 @@ const Categories = () => {
           <Link
             key={category.name}
             to={`/products?category=${category.name}`}
-            className="bg-white shadow rounded-xl p-8 text-center hover:shadow-xl transition"
+            className={`rounded-xl p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 ${
+              darkMode
+                ? "bg-gray-800 text-white"
+                : "bg-white text-black"
+            }`}
           >
             <div className="text-5xl mb-4">
               {category.emoji}

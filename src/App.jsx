@@ -1,7 +1,9 @@
 import { useContext } from "react";
 import Navbar from "./components/Navbar/Navbar";
+import Footer from "./components/Footer/Footer";
 import AppRoutes from "./routes/AppRoutes";
 import { ThemeContext } from "./context/ThemeContext";
+import "./firebase";
 
 function App() {
   const { darkMode } =
@@ -9,14 +11,19 @@ function App() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 ${
+      className={`min-h-screen flex flex-col transition-colors duration-300 ${
         darkMode
           ? "bg-gray-900 text-white"
           : "bg-gray-100 text-black"
       }`}
     >
       <Navbar />
-      <AppRoutes />
+
+      <main className="flex-1">
+        <AppRoutes />
+      </main>
+
+      <Footer />
     </div>
   );
 }

@@ -1,32 +1,32 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
-import App from "./App";
+import App from "./App.jsx";
 import "./style.css";
 
 import CartProvider from "./context/CartContext";
 import WishlistProvider from "./context/WishlistContext";
 import AuthProvider from "./context/AuthContext";
 import ThemeProvider from "./context/ThemeContext";
+import RecentProvider from "./context/RecentContext";
+
 ReactDOM.createRoot(
   document.getElementById("root")
 ).render(
-  <BrowserRouter>
-  <ThemeProvider>
-    <AuthProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <App />
-          <ToastContainer
-            position="top-right"
-            autoClose={2000}
-          />
-        </WishlistProvider>
-      </CartProvider>
-    </AuthProvider>
-  </ThemeProvider>
-</BrowserRouter>
+  <React.StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
+        <ThemeProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <RecentProvider>
+                <App />
+              </RecentProvider>
+            </WishlistProvider>
+          </CartProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>
 );

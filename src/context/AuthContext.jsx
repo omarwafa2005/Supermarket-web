@@ -1,97 +1,106 @@
-import { createContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useEffect,
+  useState,
+} from "react";
 
-export const AuthContext = createContext();
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  onAuthStateChanged,
+} from "firebase/auth";
 
-const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+import { auth } from "../firebase";
 
-  const login = (email, password) => {
-    const savedUsers = JSON.parse(
-      localStorage.getItem("users")
-    ) || [];
+export const AuthContext =
+  createContext();
 
-    const foundUser = savedUsers.find(
-      (u) =>
-        u.email === email &&
-        u.password === password
-    );
+const AuthProvider = ({
+  children,
+}) => {
+  const [user, setUser] =
+    useState(null);
 
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem(
-        "user",
-        JSON.stringify(foundUser)
+  const [loading, setLoading] =
+    useState(true);
+
+  useEffect(() => {
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        (currentUser) => {
+          setUser(currentUser);
+          setLoading(false);
+        }
       );
-      return true;
-    }
 
-    return false;
-  };
+    return unsubscribe;
+  }, []);
 
-  const register = (
+  const register = async (
     name,
     email,
     password
   ) => {
-    const savedUsers = JSON.parse(
-      localStorage.getItem("users")
-    ) || [];
+    try {
+      const userCredential =
+        await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
 
-    const exists = savedUsers.find(
-      (u) => u.email === email
-    );
+      await updateProfile(
+        userCredential.user,
+        {
+          displayName: name,
+        }
+      );
 
-    if (exists) {
+      setUser({
+        ...userCredential.user,
+        displayName: name,
+      });
+
+      return true;
+    } catch (error) {
+      console.log(error);
       return false;
     }
-
-    const newUser = {
-      id: Date.now(),
-      name,
-      email,
-      password,
-    };
-
-    savedUsers.push(newUser);
-
-    localStorage.setItem(
-      "users",
-      JSON.stringify(savedUsers)
-    );
-
-    setUser(newUser);
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(newUser)
-    );
-
-    return true;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-  };
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify(user)
+  const login = async (
+    email,
+    password
+  ) => {
+    try {
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
       );
+
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
     }
-  }, [user]);
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        login,
+        loading,
         register,
+        login,
         logout,
       }}
     >

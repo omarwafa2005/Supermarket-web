@@ -1,132 +1,134 @@
-import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { CartContext } from "../../context/CartContext";
-import { toast } from "react-toastify";
+import {
+  useContext,
+  useState,
+} from "react";
+import {
+  useNavigate,
+} from "react-router-dom";
+import {
+  CartContext,
+} from "../../context/CartContext";
+import {
+  ThemeContext,
+} from "../../context/ThemeContext";
+import {
+  toast,
+} from "react-toastify";
 
 const Checkout = () => {
-  const { cartItems } = useContext(CartContext);
-  const navigate = useNavigate();
+  const { clearCart } =
+    useContext(
+      CartContext
+    );
 
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "",
-    paymentMethod: "Cash",
-  });
+  const { darkMode } =
+    useContext(
+      ThemeContext
+    );
 
-  const total = cartItems.reduce(
-    (sum, item) =>
-      sum +
-      Number(item.price) * item.quantity,
-    0
-  );
+  const navigate =
+    useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]:
-        e.target.value,
-    });
-  };
+  const [name, setName] =
+    useState("");
 
-  const handleSubmit = (e) => {
+  const [address, setAddress] =
+    useState("");
+
+  const [phone, setPhone] =
+    useState("");
+
+  const handleSubmit = (
+    e
+  ) => {
     e.preventDefault();
-
-    if (cartItems.length === 0) {
-      toast.error(
-        "Your cart is empty."
-      );
-      return;
-    }
 
     toast.success(
       "Order placed successfully!"
     );
 
-    navigate("/success");
+    clearCart();
+
+    navigate(
+      "/success"
+    );
   };
 
   return (
-    <section className="max-w-6xl mx-auto py-16 px-6">
-      <h1 className="text-5xl font-bold text-center mb-12">
-        Checkout
-      </h1>
+    <section
+      className={`min-h-[80vh] flex items-center justify-center px-6 ${
+        darkMode
+          ? "bg-gray-900 text-white"
+          : "bg-gray-100 text-black"
+      }`}
+    >
+      <div
+        className={`w-full max-w-lg p-8 rounded-2xl shadow-xl ${
+          darkMode
+            ? "bg-gray-800"
+            : "bg-white"
+        }`}
+      >
+        <h1 className="text-4xl font-bold text-center mb-8">
+          Checkout
+        </h1>
 
-      <div className="grid md:grid-cols-2 gap-12">
         <form
-          onSubmit={handleSubmit}
-          className="bg-white p-8 rounded-xl shadow"
+          onSubmit={
+            handleSubmit
+          }
+          className="space-y-5"
         >
-          <h2 className="text-2xl font-bold mb-6">
-            Shipping Details
-          </h2>
-
           <input
             type="text"
-            name="fullName"
             placeholder="Full Name"
-            value={formData.fullName}
-            onChange={
-              handleChange
+            value={name}
+            onChange={(e) =>
+              setName(
+                e.target.value
+              )
             }
             required
-            className="w-full p-3 border rounded-lg mb-4"
-          />
-
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={
-              handleChange
-            }
-            required
-            className="w-full p-3 border rounded-lg mb-4"
+            className={`w-full p-3 rounded-lg border ${
+              darkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "border-gray-300"
+            }`}
           />
 
           <input
             type="text"
-            name="phone"
-            placeholder="Phone Number"
-            value={formData.phone}
-            onChange={
-              handleChange
-            }
-            required
-            className="w-full p-3 border rounded-lg mb-4"
-          />
-
-          <textarea
-            name="address"
             placeholder="Address"
-            value={formData.address}
-            onChange={
-              handleChange
+            value={address}
+            onChange={(e) =>
+              setAddress(
+                e.target.value
+              )
             }
             required
-            className="w-full p-3 border rounded-lg mb-4"
+            className={`w-full p-3 rounded-lg border ${
+              darkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "border-gray-300"
+            }`}
           />
 
-          <select
-            name="paymentMethod"
-            value={
-              formData.paymentMethod
+          <input
+            type="tel"
+            placeholder="Phone Number"
+            value={phone}
+            onChange={(e) =>
+              setPhone(
+                e.target.value
+              )
             }
-            onChange={
-              handleChange
-            }
-            className="w-full p-3 border rounded-lg mb-6"
-          >
-            <option value="Cash">
-              Cash on Delivery
-            </option>
-
-            <option value="Card">
-              Credit Card
-            </option>
-          </select>
+            required
+            className={`w-full p-3 rounded-lg border ${
+              darkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "border-gray-300"
+            }`}
+          />
 
           <button
             type="submit"
@@ -135,50 +137,6 @@ const Checkout = () => {
             Place Order
           </button>
         </form>
-
-        <div className="bg-white p-8 rounded-xl shadow">
-          <h2 className="text-2xl font-bold mb-6">
-            Order Summary
-          </h2>
-
-          {cartItems.map(
-            (item) => (
-              <div
-                key={item.id}
-                className="flex justify-between mb-4"
-              >
-                <span>
-                  {item.name} x
-                  {
-                    item.quantity
-                  }
-                </span>
-
-                <span>
-                  $
-                  {(
-                    Number(
-                      item.price
-                    ) *
-                    item.quantity
-                  ).toFixed(
-                    2
-                  )}
-                </span>
-              </div>
-            )
-          )}
-
-          <hr className="my-6" />
-
-          <div className="flex justify-between text-2xl font-bold">
-            <span>Total</span>
-            <span>
-              $
-              {total.toFixed(2)}
-            </span>
-          </div>
-        </div>
       </div>
     </section>
   );
