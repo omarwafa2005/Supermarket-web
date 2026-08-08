@@ -14,26 +14,32 @@ const Login = () => {
     useState("");
   const [password, setPassword] =
     useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!email.trim() || !password.trim()) {
+      toast.error("Please enter both email and password.");
+      return;
+    }
+
+    setSubmitting(true);
+
     const success =
       await login(
-        email,
+        email.trim(),
         password
       );
 
     if (success) {
-      toast.success(
-        "Logged in successfully"
-      );
+      toast.success("Welcome back! You are now logged in.");
       navigate("/");
     } else {
-      toast.error(
-        "Invalid email or password"
-      );
+      toast.error("Invalid email or password. Please try again.");
     }
+
+    setSubmitting(false);
   };
 
   return (
@@ -96,9 +102,10 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+            disabled={submitting}
+            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Login
+            {submitting ? "Signing in..." : "Login"}
           </button>
 
           <p

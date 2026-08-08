@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { CartContext } from "../../context/CartContext";
 import { ThemeContext } from "../../context/ThemeContext";
 import { saveOrder } from "../../utils/orders";
+import { findCouponByCode, getActiveCoupons } from "../../utils/coupons";
 
 const Checkout = () => {
   const { cartItems, clearCart } = useContext(CartContext);
@@ -25,11 +26,7 @@ const Checkout = () => {
   const deliveryFee = subtotal >= 25 || subtotal === 0 ? 0 : 4.99;
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const availableCoupons = {
-    SAVE10: { label: "10% off", type: "percent", value: 10 },
-    WELCOME20: { label: "$20 off", type: "fixed", value: 20 },
-    FREE5: { label: "$5 off", type: "fixed", value: 5 },
-  };
+  const availableCoupons = getActiveCoupons();
 
   const discountBase = subtotal + deliveryFee;
   const discountAmount = appliedCoupon
@@ -42,11 +39,17 @@ const Checkout = () => {
 
   const handleApplyCoupon = () => {
     const normalizedCode = couponCode.trim().toUpperCase();
-    const nextCoupon = availableCoupons[normalizedCode];
+    const nextCoupon = findCouponByCode(normalizedCode);
 
     if (!nextCoupon) {
       setAppliedCoupon(null);
       toast.error("Invalid coupon code.");
+      return;
+    }
+
+    if (subtotal < Number(nextCoupon.minSubtotal || 0)) {
+      setAppliedCoupon(null);
+      toast.error(`This coupon needs a minimum subtotal of $${Number(nextCoupon.minSubtotal || 0).toFixed(2)}.`);
       return;
     }
 
@@ -251,7 +254,7 @@ const Checkout = () => {
               </div>
 
               <div className={`mt-3 text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
-                Available: SAVE10, WELCOME20, FREE5
+                Available: {availableCoupons.length > 0 ? availableCoupons.map((coupon) => coupon.code).join(", ") : "No active coupons"}
               </div>
 
               {appliedCoupon && (

@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { ThemeContext } from "../../context/ThemeContext";
 import {
   addProduct,
@@ -20,6 +20,7 @@ const Products = () => {
   const [products, setProducts] = useState(() => getProducts());
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [search, setSearch] = useState("");
 
   const refreshProducts = (nextProducts) => {
     setProducts(nextProducts);
@@ -75,6 +76,18 @@ const Products = () => {
       setForm(emptyForm);
     }
   };
+
+  const filteredProducts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    if (!query) {
+      return products;
+    }
+
+    return products.filter((product) =>
+      `${product.name} ${product.category}`.toLowerCase().includes(query)
+    );
+  }, [products, search]);
 
   return (
     <section className={darkMode ? "text-white" : "text-black"}>
@@ -167,13 +180,30 @@ const Products = () => {
         </div>
       </form>
 
-      {products.length === 0 ? (
+      <div className={`mb-6 flex flex-col gap-3 rounded-2xl border px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between ${darkMode ? "border-gray-800 bg-gray-900" : "border-gray-200 bg-white"}`}>
+        <div>
+          <p className="text-sm font-semibold text-green-600">Live catalog</p>
+          <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            Showing {filteredProducts.length} product{filteredProducts.length === 1 ? "" : "s"}
+          </p>
+        </div>
+
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search products"
+          className={`w-full rounded-2xl border px-4 py-3 outline-none md:max-w-xs ${darkMode ? "border-gray-700 bg-gray-800 text-white" : "border-gray-300 bg-white"}`}
+        />
+      </div>
+
+      {filteredProducts.length === 0 ? (
         <div className={`rounded-2xl border border-dashed p-8 text-center ${darkMode ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"}`}>
-          No products yet
+          No products match your search.
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <article key={product.id} className={`overflow-hidden rounded-3xl border shadow-sm ${darkMode ? "border-gray-800 bg-gray-900" : "border-gray-200 bg-white"}`}>
               <img src={product.image} alt={product.name} className="h-48 w-full object-cover" />
 

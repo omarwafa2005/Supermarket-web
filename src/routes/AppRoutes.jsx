@@ -22,6 +22,7 @@ const AdminProducts = lazy(() => import("../pages/Admin/Products"));
 const Orders = lazy(() => import("../pages/Admin/Orders"));
 const Users = lazy(() => import("../pages/Admin/Users"));
 const AdminAccess = lazy(() => import("../pages/Admin/AdminAccess"));
+const Coupons = lazy(() => import("../pages/Admin/Coupons"));
 const NotFound = lazy(() => import("../pages/NotFound/NotFound"));
 
 const AppRoutes = () => {
@@ -78,6 +79,8 @@ const AppRoutes = () => {
           <Route path="users" element={<Users />} />
 
           <Route path="admins" element={<AdminAccess />} />
+
+          <Route path="coupons" element={<Coupons />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

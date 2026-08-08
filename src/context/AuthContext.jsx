@@ -21,6 +21,10 @@ import {
   saveStoredAdminEmails,
   syncAdminEmailsToFirestore,
 } from "../utils/admin";
+import { hydrateProductsFromFirestore } from "../utils/products";
+import { hydrateOrdersFromFirestore } from "../utils/orders";
+import { hydrateAdminEmailsFromFirestore } from "../utils/admin";
+import { hydrateCouponsFromFirestore } from "../utils/coupons";
 import { recordUserLogin, upsertUserProfile } from "../utils/users";
 
 export const AuthContext =
@@ -49,6 +53,13 @@ const AuthProvider = ({
       );
 
     return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    void hydrateProductsFromFirestore();
+    void hydrateOrdersFromFirestore();
+    void hydrateAdminEmailsFromFirestore();
+    void hydrateCouponsFromFirestore();
   }, []);
 
   useEffect(() => {

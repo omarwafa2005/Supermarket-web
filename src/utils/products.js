@@ -1,6 +1,16 @@
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
+import { db } from "../firebase";
 import defaultProducts from "../data/products";
+import { mergeByUpdatedAt, stampRecord } from "./dataSync";
 
 const PRODUCTS_KEY = "products";
+const PRODUCTS_COLLECTION = collection(db, "products");
 
 const safeParse = (value, fallback) => {
   try {
@@ -10,15 +20,22 @@ const safeParse = (value, fallback) => {
   }
 };
 
-const normalizeProduct = (product) => ({
-  ...product,
-  id: Number(product.id),
-  price: Number(product.price),
-  rating: Number(product.rating),
-  name: product.name.trim(),
-  category: product.category.trim(),
-  image: product.image.trim(),
-});
+const normalizeProduct = (product) => {
+  const normalized = {
+    ...product,
+    id: Number(product.id),
+    price: Number(product.price),
+    rating: Number(product.rating),
+    name: product.name?.trim() || "",
+    category: product.category?.trim() || "General",
+    image: product.image?.trim() || "",
+  };
+
+  return stampRecord(normalized, {
+    price: Number(normalized.price) || 0,
+    rating: Number(normalized.rating) || 0,
+  });
+};
 
 const createInitialProducts = () => {
   const normalizedDefaults = defaultProducts.map(normalizeProduct);
@@ -52,7 +69,45 @@ export const saveProducts = (products) => {
     JSON.stringify(normalizedProducts)
   );
 
+  void (async () => {
+    try {
+      const batch = writeBatch(db);
+
+      normalizedProducts.forEach((product) => {
+        batch.set(doc(PRODUCTS_COLLECTION, String(product.id)), product);
+      });
+
+      await batch.commit();
+    } catch {
+      // fall back to local storage only
+    }
+  })();
+
   return normalizedProducts;
+};
+
+export const hydrateProductsFromFirestore = async () => {
+  try {
+    const snapshot = await getDocs(PRODUCTS_COLLECTION);
+    const remoteProducts = snapshot.docs.map((productDoc) =>
+      normalizeProduct({
+        ...(productDoc.data() || {}),
+        id: productDoc.id,
+      })
+    );
+
+    const localProducts = getProducts();
+
+    if (remoteProducts.length > 0 || localProducts.length > 0) {
+      const mergedProducts = mergeByUpdatedAt(localProducts, remoteProducts, "id");
+      saveProducts(mergedProducts);
+      return mergedProducts;
+    }
+  } catch {
+    // fall back to local storage
+  }
+
+  return getProducts();
 };
 
 export const addProduct = (product) => {
@@ -89,6 +144,8 @@ export const deleteProduct = (productId) => {
   const nextProducts = products.filter(
     (product) => Number(product.id) !== Number(productId)
   );
+
+  void deleteDoc(doc(PRODUCTS_COLLECTION, String(productId)));
 
   return saveProducts(nextProducts);
 };

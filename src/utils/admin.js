@@ -1,5 +1,5 @@
 import { db } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const SPECIAL_ADMIN_EMAILS = ["omarwafs65@gmail.com"];
 const ADMIN_EMAILS_KEY = "specialAdminEmails";
@@ -44,6 +44,25 @@ export const saveStoredAdminEmails = (emails) => {
   const nextEmails = normalizeAdminEmails(emails);
   localStorage.setItem(ADMIN_EMAILS_KEY, JSON.stringify(nextEmails));
   return nextEmails;
+};
+
+export const hydrateAdminEmailsFromFirestore = async () => {
+  try {
+    const snapshot = await getDoc(ADMIN_SETTINGS_DOC);
+
+    if (snapshot.exists()) {
+      const nextEmails = normalizeAdminEmails(snapshot.data()?.emails || []);
+
+      if (nextEmails.length > 0) {
+        saveStoredAdminEmails(nextEmails);
+        return nextEmails;
+      }
+    }
+  } catch {
+    // fall back to local storage
+  }
+
+  return getStoredAdminEmails();
 };
 
 export const syncAdminEmailsToFirestore = async (emails) => {

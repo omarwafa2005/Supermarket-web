@@ -1,4 +1,9 @@
+import { doc, writeBatch } from "firebase/firestore";
+import { db } from "../firebase";
+import { stampRecord } from "./dataSync";
+
 const USERS_KEY = "appUsers";
+const USERS_COLLECTION = "users";
 
 const safeParse = (value, fallback) => {
   try {
@@ -16,6 +21,21 @@ export const getStoredUsers = () => {
 
 export const saveUsers = (users) => {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+  void (async () => {
+    try {
+      const batch = writeBatch(db);
+
+      users.forEach((user) => {
+        batch.set(doc(db, USERS_COLLECTION, user.uid || user.email), stampRecord(user));
+      });
+
+      await batch.commit();
+    } catch {
+      // fall back to local storage only
+    }
+  })();
+
   return users;
 };
 
@@ -25,14 +45,14 @@ export const upsertUserProfile = (profile) => {
     (user) => user.uid === profile.uid || user.email === profile.email
   );
 
-  const nextProfile = {
+  const nextProfile = stampRecord({
     uid: profile.uid,
     name: profile.name || profile.displayName || profile.email.split("@")[0],
     email: profile.email,
     role: profile.role || "customer",
     createdAt: profile.createdAt || new Date().toISOString(),
     lastLoginAt: profile.lastLoginAt || new Date().toISOString(),
-  };
+  });
 
   if (existingIndex >= 0) {
     const nextUsers = users.map((user, index) =>

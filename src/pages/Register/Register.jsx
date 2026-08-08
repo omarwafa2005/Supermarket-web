@@ -21,27 +21,33 @@ const Register = () => {
 
   const [password, setPassword] =
     useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!name.trim() || !email.trim() || password.length < 6) {
+      toast.error("Please fill in all fields and use at least 6 characters for the password.");
+      return;
+    }
+
+    setSubmitting(true);
+
     const success =
       await register(
-        name,
-        email,
+        name.trim(),
+        email.trim(),
         password
       );
 
     if (success) {
-      toast.success(
-        "Account created successfully"
-      );
+      toast.success("Your account has been created successfully.");
       navigate("/");
     } else {
-      toast.error(
-        "Failed to create account"
-      );
+      toast.error("Unable to create account. Please check your details and try again.");
     }
+
+    setSubmitting(false);
   };
 
   return (
@@ -117,9 +123,10 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+            disabled={submitting}
+            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Register
+            {submitting ? "Creating account..." : "Register"}
           </button>
 
           <p

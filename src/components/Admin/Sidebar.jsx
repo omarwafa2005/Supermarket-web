@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, ShieldCheck, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, ShieldCheck, TicketPercent, Users, LogOut } from "lucide-react";
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ThemeContext } from "../../context/ThemeContext";
@@ -55,6 +55,14 @@ const Sidebar = () => {
         >
           <ShieldCheck size={22}/>
           Admins
+        </Link>
+
+        <Link
+          to="/admin/coupons"
+          className={`flex items-center gap-3 p-3 rounded-lg ${darkMode ? "hover:bg-gray-800" : "hover:bg-white"}`}
+        >
+          <TicketPercent size={22}/>
+          Coupons
         </Link>
 
         <button
