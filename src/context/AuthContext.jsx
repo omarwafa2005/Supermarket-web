@@ -11,8 +11,17 @@ import {
   updateProfile,
   onAuthStateChanged,
 } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
 
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
+import {
+  getStoredAdminEmails,
+  isAdminEmail,
+  normalizeAdminEmails,
+  saveStoredAdminEmails,
+  syncAdminEmailsToFirestore,
+} from "../utils/admin";
+import { recordUserLogin, upsertUserProfile } from "../utils/users";
 
 export const AuthContext =
   createContext();
@@ -26,6 +35,9 @@ const AuthProvider = ({
   const [loading, setLoading] =
     useState(true);
 
+  const [adminEmails, setAdminEmails] =
+    useState(() => getStoredAdminEmails());
+
   useEffect(() => {
     const unsubscribe =
       onAuthStateChanged(
@@ -38,6 +50,43 @@ const AuthProvider = ({
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    const adminDocRef = doc(db, "settings", "adminAccess");
+
+    const unsubscribe = onSnapshot(
+      adminDocRef,
+      (snapshot) => {
+        if (!snapshot.exists()) {
+          return;
+        }
+
+        const nextEmails = normalizeAdminEmails(
+          snapshot.data()?.emails || []
+        );
+
+        if (nextEmails.length > 0) {
+          setAdminEmails(nextEmails);
+          saveStoredAdminEmails(nextEmails);
+        }
+      },
+      () => {
+        setAdminEmails(getStoredAdminEmails());
+      }
+    );
+
+    return unsubscribe;
+  }, []);
+
+  const updateAdminEmails = async (emails) => {
+    const nextEmails = normalizeAdminEmails(emails);
+
+    setAdminEmails(nextEmails);
+    saveStoredAdminEmails(nextEmails);
+    await syncAdminEmailsToFirestore(nextEmails);
+
+    return nextEmails;
+  };
 
   const register = async (
     name,
@@ -64,6 +113,19 @@ const AuthProvider = ({
         displayName: name,
       });
 
+      const role = isAdminEmail(email, adminEmails)
+        ? "admin"
+        : "customer";
+
+      upsertUserProfile({
+        uid: userCredential.user.uid,
+        name,
+        email,
+        role,
+        lastLoginAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      });
+
       return true;
     } catch (error) {
       console.log(error);
@@ -76,11 +138,18 @@ const AuthProvider = ({
     password
   ) => {
     try {
-      await signInWithEmailAndPassword(
+      const userCredential =
+        await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
+
+      const role = isAdminEmail(email, adminEmails)
+        ? "admin"
+        : "customer";
+
+      recordUserLogin(userCredential.user, role);
 
       return true;
     } catch (error) {
@@ -99,6 +168,8 @@ const AuthProvider = ({
       value={{
         user,
         loading,
+        adminEmails,
+        updateAdminEmails,
         register,
         login,
         logout,

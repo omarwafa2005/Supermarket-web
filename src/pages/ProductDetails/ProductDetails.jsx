@@ -8,9 +8,9 @@ import {
 import { CartContext } from "../../context/CartContext";
 import { ThemeContext } from "../../context/ThemeContext";
 import { RecentContext } from "../../context/RecentContext";
-import products from "../../data/products";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import RecentlyViewed from "../../components/RecentlyViewed/RecentlyViewed";
+import { getProductById, getProducts } from "../../utils/products";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -27,11 +27,7 @@ const ProductDetails = () => {
     RecentContext
   );
 
-  const product =
-    products.find(
-      (p) =>
-        p.id === Number(id)
-    );
+  const product = getProductById(id);
 
   useEffect(() => {
     if (product) {
@@ -39,7 +35,7 @@ const ProductDetails = () => {
         product
       );
     }
-  }, [product]);
+  }, [product, addRecentProduct]);
 
   if (!product) {
     return (
@@ -50,7 +46,7 @@ const ProductDetails = () => {
   }
 
   const relatedProducts =
-    products
+    getProducts()
       .filter(
         (item) =>
           item.category ===

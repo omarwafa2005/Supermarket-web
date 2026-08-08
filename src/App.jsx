@@ -3,7 +3,6 @@ import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import AppRoutes from "./routes/AppRoutes";
 import { ThemeContext } from "./context/ThemeContext";
-import "./firebase";
 
 function App() {
   const { darkMode } =

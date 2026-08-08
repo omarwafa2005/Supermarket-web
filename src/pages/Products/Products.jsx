@@ -1,33 +1,32 @@
 import {
-  useState,
   useContext,
-  useEffect,
+  useState,
 } from "react";
 import {
   useSearchParams,
 } from "react-router-dom";
-import products from "../../data/products";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import { ThemeContext } from "../../context/ThemeContext";
+import {
+  getProductCategories,
+  getProducts,
+} from "../../utils/products";
 
 const Products = () => {
   const { darkMode } =
     useContext(ThemeContext);
 
-  const [searchParams] =
+  const [searchParams, setSearchParams] =
     useSearchParams();
 
   const query =
     searchParams.get("search") || "";
 
-  const [search, setSearch] =
-    useState(query);
+  const selectedCategory =
+    searchParams.get("category") || "All";
 
   const [sortBy, setSortBy] =
     useState("");
-
-  const [category, setCategory] =
-    useState("All");
 
   const [minPrice, setMinPrice] =
     useState("");
@@ -38,24 +37,38 @@ const Products = () => {
   const [currentPage, setCurrentPage] =
     useState(1);
 
-  useEffect(() => {
-    setSearch(query);
+  const [showFilters, setShowFilters] =
+    useState(false);
+
+  const activeSearch = query;
+  const allProducts = getProducts();
+
+  const setFilterParam = (key, value) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (!value || value === "All") {
+      nextParams.delete(key);
+    } else {
+      nextParams.set(key, value);
+    }
+
+    setSearchParams(nextParams);
     setCurrentPage(1);
-  }, [query]);
+  };
 
   let filteredProducts =
-    products.filter((product) => {
+    allProducts.filter((product) => {
       const matchesSearch =
         product.name
           .toLowerCase()
           .includes(
-            search.toLowerCase()
+            activeSearch.toLowerCase()
           );
 
       const matchesCategory =
-        category === "All" ||
+        selectedCategory === "All" ||
         product.category ===
-          category;
+          selectedCategory;
 
       const matchesMin =
         minPrice === "" ||
@@ -127,29 +140,64 @@ const Products = () => {
 
   return (
     <section
-      className={`max-w-7xl mx-auto py-16 px-6 transition-colors duration-300 ${
-        darkMode
-          ? "text-white"
-          : "text-black"
+      className={`mx-auto max-w-7xl px-6 py-16 transition-colors duration-300 ${
+        darkMode ? "text-white" : "text-black"
       }`}
     >
-      <h1 className="text-5xl font-bold text-center mb-12">
-        All Products
-      </h1>
+      <div className="mx-auto mb-12 max-w-3xl text-center">
+        <p className="text-sm font-semibold uppercase tracking-[0.35em] text-green-600">
+          Browse fresh picks
+        </p>
+
+        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
+          All Products
+        </h1>
+
+        <p className={`mt-4 text-base sm:text-lg ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+          Search, filter, and sort groceries with a cleaner shopping flow.
+        </p>
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border px-4 py-4 shadow-sm backdrop-blur-sm transition-colors duration-300 md:px-6 dark:border-gray-800 dark:bg-gray-900/70 border-gray-200 bg-white/80">
+        <div>
+          <p className="text-sm font-medium uppercase tracking-[0.25em] text-green-600">
+            Search & sort
+          </p>
+
+          <p className={`mt-1 text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+            {filteredProducts.length} products match your filters
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowFilters((current) => !current)}
+          className="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 md:hidden"
+        >
+          {showFilters ? "Hide filters" : "Show filters"}
+        </button>
+      </div>
 
       {/* Search + Sort */}
-      <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
+      <div className={`${showFilters ? "flex" : "hidden"} flex-col gap-4 mb-8 md:flex md:flex-row md:justify-center`}>
         <input
           type="text"
-          placeholder="Search products..."
-          value={search}
+          placeholder="Search products or categories..."
+          value={query}
           onChange={(e) => {
-            setSearch(
-              e.target.value
-            );
+            const nextSearch = e.target.value;
+            const nextParams = new URLSearchParams(searchParams);
+
+            if (nextSearch) {
+              nextParams.set("search", nextSearch);
+            } else {
+              nextParams.delete("search");
+            }
+
+            setSearchParams(nextParams);
             setCurrentPage(1);
           }}
-          className={`w-full md:w-96 p-3 rounded-lg border ${
+          className={`w-full md:w-96 p-3 rounded-xl border shadow-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 ${
             darkMode
               ? "bg-gray-800 border-gray-700 text-white"
               : "bg-white border-gray-300 text-black"
@@ -164,7 +212,7 @@ const Products = () => {
             );
             setCurrentPage(1);
           }}
-          className={`p-3 rounded-lg border ${
+          className={`p-3 rounded-xl border shadow-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 ${
             darkMode
               ? "bg-gray-800 border-gray-700 text-white"
               : "bg-white border-gray-300 text-black"
@@ -194,21 +242,14 @@ const Products = () => {
 
       {/* Categories */}
       <div className="flex justify-center gap-3 flex-wrap mb-8">
-        {[
-          "All",
-          "Fruits",
-          "Dairy",
-          "Bakery",
-          "Drinks",
-        ].map((item) => (
+        {getProductCategories().map((item) => (
           <button
             key={item}
             onClick={() => {
-              setCategory(item);
-              setCurrentPage(1);
+              setFilterParam("category", item);
             }}
-            className={`px-5 py-2 rounded-lg transition ${
-              category === item
+            className={`px-5 py-2 rounded-full transition ${
+              selectedCategory === item
                 ? "bg-green-600 text-white"
                 : darkMode
                 ? "bg-gray-800 text-white hover:bg-gray-700"
@@ -232,7 +273,7 @@ const Products = () => {
             );
             setCurrentPage(1);
           }}
-          className={`p-3 rounded-lg border w-40 ${
+          className={`w-40 rounded-xl border p-3 shadow-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 ${
             darkMode
               ? "bg-gray-800 border-gray-700 text-white"
               : "bg-white border-gray-300 text-black"
@@ -249,7 +290,7 @@ const Products = () => {
             );
             setCurrentPage(1);
           }}
-          className={`p-3 rounded-lg border w-40 ${
+          className={`w-40 rounded-xl border p-3 shadow-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 ${
             darkMode
               ? "bg-gray-800 border-gray-700 text-white"
               : "bg-white border-gray-300 text-black"
@@ -260,7 +301,7 @@ const Products = () => {
       {/* Products */}
       {currentProducts.length ===
       0 ? (
-        <h2 className="text-center text-2xl">
+        <h2 className="text-center text-2xl font-semibold">
           No products found.
         </h2>
       ) : (

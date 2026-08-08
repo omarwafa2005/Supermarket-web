@@ -1,9 +1,10 @@
 import { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { isAdminUser } from "../utils/admin";
 
 const ProtectedAdminRoute = ({ children }) => {
-  const { user, loading } =
+  const { user, loading, adminEmails } =
     useContext(AuthContext);
 
   if (loading) {
@@ -14,14 +15,7 @@ const ProtectedAdminRoute = ({ children }) => {
     );
   }
 
-  // غير الإيميل ده بإيميلك
-  const adminEmail =
-    "omarwafs65@gmail.com";
-
-  if (
-    !user ||
-    user.email !== adminEmail
-  ) {
+  if (!isAdminUser(user, adminEmails)) {
     return <Navigate to="/" replace />;
   }
 

@@ -10,6 +10,7 @@ import { CartContext } from "../../context/CartContext";
 import { WishlistContext } from "../../context/WishlistContext";
 import { AuthContext } from "../../context/AuthContext";
 import { ThemeContext } from "../../context/ThemeContext";
+import { adminDashboardPath, isAdminUser } from "../../utils/admin";
 
 const Navbar = () => {
   const { cartItems } =
@@ -18,7 +19,7 @@ const Navbar = () => {
   const { wishlist } =
     useContext(WishlistContext);
 
-  const { user, logout } =
+  const { user, logout, adminEmails } =
     useContext(AuthContext);
 
   const {
@@ -48,18 +49,24 @@ const Navbar = () => {
     setMenuOpen(false);
   };
 
+  const showAdminLink = isAdminUser(user, adminEmails);
+
+  const closeMobileMenu = () => {
+    setMenuOpen(false);
+  };
+
   return (
     <nav
-      className={`shadow px-6 py-4 transition-colors duration-300 ${
+      className={`sticky top-0 z-50 border-b px-6 py-4 backdrop-blur transition-colors duration-300 ${
         darkMode
-          ? "bg-gray-800 text-white"
-          : "bg-white text-black"
+          ? "border-gray-800 bg-gray-900/90 text-white"
+          : "border-gray-200 bg-white/90 text-black"
       }`}
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
         <Link
           to="/"
-          className="text-3xl font-bold text-green-600"
+          className="text-2xl font-black tracking-tight text-green-600 md:text-3xl"
         >
           SuperMarket 🛒
         </Link>
@@ -78,7 +85,7 @@ const Navbar = () => {
                 e.target.value
               )
             }
-            className={`w-full px-4 py-2 rounded-l-lg border outline-none ${
+            className={`w-full rounded-l-full border px-4 py-2 outline-none transition focus:border-green-500 ${
               darkMode
                 ? "bg-gray-700 border-gray-600 text-white"
                 : "bg-white border-gray-300 text-black"
@@ -87,26 +94,36 @@ const Navbar = () => {
 
           <button
             type="submit"
-            className="bg-green-600 text-white px-4 rounded-r-lg hover:bg-green-700"
+            className="rounded-r-full bg-green-600 px-4 text-white transition hover:bg-green-700"
           >
             🔍
           </button>
         </form>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-8">
-          <Link to="/">
+        <div className="hidden md:flex items-center gap-7 text-sm font-medium">
+          <Link to="/" className="transition hover:text-green-600">
             Home
           </Link>
 
-          <Link to="/products">
+          <Link to="/products" className="transition hover:text-green-600">
             Products
           </Link>
+
+          <Link to="/my-orders" className="transition hover:text-green-600">
+            My Orders
+          </Link>
+
+          {showAdminLink && (
+            <Link to={adminDashboardPath} className="rounded-full border border-green-600 px-4 py-2 text-green-600 transition hover:bg-green-600 hover:text-white">
+              Dashboard
+            </Link>
+          )}
 
           <div className="relative">
             <Link
               to="/wishlist"
-              className="text-3xl"
+              className="text-2xl transition hover:scale-105"
             >
               ❤️
             </Link>
@@ -122,7 +139,7 @@ const Navbar = () => {
           <div className="relative">
             <Link
               to="/cart"
-              className="text-3xl"
+              className="text-2xl transition hover:scale-105"
             >
               🛒
             </Link>
@@ -141,7 +158,7 @@ const Navbar = () => {
                 !darkMode
               )
             }
-            className="text-2xl"
+            className="rounded-full border border-transparent px-3 py-2 text-xl transition hover:border-gray-300 hover:bg-black/5 dark:hover:border-gray-700 dark:hover:bg-white/5"
           >
             {darkMode
               ? "☀️"
@@ -156,7 +173,7 @@ const Navbar = () => {
 
               <button
                 onClick={logout}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                className="rounded-full bg-red-500 px-4 py-2 text-white transition hover:bg-red-600"
               >
                 Logout
               </button>
@@ -164,7 +181,7 @@ const Navbar = () => {
           ) : (
             <Link
               to="/login"
-              className="bg-green-600 text-white px-4 py-2 rounded-lg"
+              className="rounded-full bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
             >
               Login
             </Link>
@@ -186,7 +203,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden mt-5 flex flex-col gap-4">
+        <div className={`md:hidden mt-5 flex flex-col gap-4 rounded-2xl border p-4 shadow-sm ${darkMode ? "border-gray-800 bg-gray-900" : "border-gray-200 bg-white"}`}>
           <form
             onSubmit={
               handleSearch
@@ -202,30 +219,40 @@ const Navbar = () => {
                   e.target.value
                 )
               }
-              className="flex-1 border p-2 rounded-l-lg text-black"
+              className="flex-1 rounded-l-full border p-2 text-black outline-none"
             />
 
             <button
-              className="bg-green-600 text-white px-4 rounded-r-lg"
+              className="rounded-r-full bg-green-600 px-4 text-white"
             >
               🔍
             </button>
           </form>
 
-          <Link to="/">
+          <Link to="/" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 transition hover:bg-black/5 dark:hover:bg-white/5">
             Home
           </Link>
 
-          <Link to="/products">
+          <Link to="/products" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 transition hover:bg-black/5 dark:hover:bg-white/5">
             Products
           </Link>
 
-          <Link to="/wishlist">
+          <Link to="/my-orders" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 transition hover:bg-black/5 dark:hover:bg-white/5">
+            My Orders
+          </Link>
+
+          {showAdminLink && (
+            <Link to={adminDashboardPath} onClick={closeMobileMenu} className="rounded-lg px-3 py-2 font-semibold text-green-600 transition hover:bg-black/5 dark:hover:bg-white/5">
+              Dashboard
+            </Link>
+          )}
+
+          <Link to="/wishlist" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 transition hover:bg-black/5 dark:hover:bg-white/5">
             Wishlist ❤️ (
             {wishlist.length})
           </Link>
 
-          <Link to="/cart">
+          <Link to="/cart" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 transition hover:bg-black/5 dark:hover:bg-white/5">
             Cart 🛒 (
             {cartItems.length})
           </Link>
@@ -236,7 +263,7 @@ const Navbar = () => {
                 !darkMode
               )
             }
-            className="text-2xl text-left"
+            className="rounded-lg px-3 py-2 text-left text-xl transition hover:bg-black/5 dark:hover:bg-white/5"
           >
             {darkMode
               ? "☀️"
@@ -245,15 +272,19 @@ const Navbar = () => {
 
           {user ? (
             <button
-              onClick={logout}
-              className="bg-red-500 text-white py-2 rounded-lg"
+              onClick={() => {
+                logout();
+                closeMobileMenu();
+              }}
+              className="rounded-full bg-red-500 py-2 text-white transition hover:bg-red-600"
             >
               Logout
             </button>
           ) : (
             <Link
               to="/login"
-              className="bg-green-600 text-white py-2 rounded-lg text-center"
+              onClick={closeMobileMenu}
+              className="rounded-full bg-green-600 py-2 text-center text-white transition hover:bg-green-700"
             >
               Login
             </Link>
